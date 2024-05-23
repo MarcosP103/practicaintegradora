@@ -1,23 +1,26 @@
 import express from "express";
-import mongoose from "mongoose";
+import { Server } from "socket.io"
+import handlebars from "express-handlebars"
+import dotenv from 'dotenv'
+import connectDB from "./config/db.js";
 import userRouter from './routes/users.router.js'
 import cartsRouter from "./routes/carts.router.js";
 import productRouter from "./routes/products.router.js";
 import chatRouter from "./routes/chat.router.js"
-
-import __dirname from "./utils.js"
-import handlebars from "express-handlebars"
 import viewsRouter from "./routes/views.router.js"
-import { Server } from "socket.io"
+import __dirname from "./utils.js"
 
-import dotenv from 'dotenv'
+//Cargar variables de entorno y conectar a MongoDB
 dotenv.config()
-console.log(process.env.MONGO_URL)
+connectDB()
 
 const app = express();
 const PORT = 8080;
+
 const httpServer = app.listen(PORT, console.log(`Server running on port ${PORT}`))
+
 const socketServer = new Server(httpServer)
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -26,11 +29,6 @@ app.set('views', __dirname + '/views')
 app.set('view engine', 'handlebars')
 app.use(express.static(__dirname + '/public'))
 app.use('/', viewsRouter)
-
-//Conexion MongoDB
-mongoose.connect(process.env.MONGO_URL)
-  .then(() => {console.log("Conectado a la base de datos")})
-  .catch((error) => console.error("Error en la conexion", error));
 
 //Routes
 app.use('/api/users', userRouter)
